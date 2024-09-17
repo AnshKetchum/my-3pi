@@ -13,6 +13,9 @@ target C {
       
     reaction(startup) {=
       // Fill in your code here
+      gpio_init(PICO_DEFAULT_LED_PIN);
+      gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+
     =}
   
     reaction(set) {=

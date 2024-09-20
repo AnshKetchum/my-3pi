@@ -39,9 +39,9 @@ main reactor {
     static char buf1[17];
     static char buf2[17];
 
-    snprintf(buf0, 17, "x:%2.4f", a.x->value);
-    snprintf(buf1, 17, "y:%2.4f", a.y->value);
-    snprintf(buf2, 17, "z:%2.4f", a.z->value);
+    snprintf(buf0, 17, "x:%2.4f", 0.992 * a.x->value + 0.0039);
+    snprintf(buf1, 17, "y:%2.4f", 1.021 * a.y->value + 0.0306);
+    snprintf(buf2, 17, "z:%2.4f", 0.995 * a.z->value + 0.027);
 
     lf_set(d.line0, buf0);
     lf_set(d.line1, buf1);

@@ -1,0 +1,292 @@
+Cleaning /home/foobar/my-3pi/include
+Cleaning /home/foobar/my-3pi/src-gen/SensorsTiltSolution/build
+--- Current working directory: /home/foobar/my-3pi/src-gen/SensorsTiltSolution/build
+--- Executing command: cmake -DLF_REACTION_GRAPH_BREADTH=3 -DLF_UNTHREADED=1 -DLOG_LEVEL=2 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/home/foobar/my-3pi -DCMAKE_INSTALL_BINDIR=bin -DLF_FILE_SEPARATOR="/" -DLF_SOURCE_DIRECTORY="/home/foobar/my-3pi/src" -DLF_PACKAGE_DIRECTORY="/home/foobar/my-3pi" /home/foobar/my-3pi/src-gen/SensorsTiltSolution
+-- The C compiler identification is GNU 10.3.1
+-- The CXX compiler identification is GNU 10.3.1
+-- The ASM compiler identification is GNU
+-- Found assembler: /usr/bin/arm-none-eabi-gcc
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/arm-none-eabi-gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/arm-none-eabi-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Python3: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+-- Including sources for unthreaded runtime.
+-- Including the following sources: tag.c, port.c, mixed_radix.c, reactor_common.c, lf_token.c, environment.c, reactor.c, vector.c, pqueue.c, util.c, semaphore.c, hashset.c, hashset_itr.c, modes.c, lf_unix_clock_support.c, lf_unix_syscall_support.c, lf_linux_support.c, lf_macos_support.c, lf_windows_support.c, lf_nrf52_support.c, lf_zephyr_support.c, lf_rp2040_support.c
+-- Applying preprocessor definitions...
+-- LF_REACTION_GRAPH_BREADTH=3
+-- LF_UNTHREADED=1
+-- LOG_LEVEL=2
+-- LF_SOURCE_DIRECTORY="/home/foobar/my-3pi/src"
+-- LF_PACKAGE_DIRECTORY="/home/foobar/my-3pi"
+-- LF_FILE_SEPARATOR="/"
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/foobar/my-3pi/src-gen/SensorsTiltSolution/build
+--- Current working directory: /home/foobar/my-3pi/src-gen/SensorsTiltSolution/build
+--- Executing command: cmake --build . --target install --parallel 4 --config Release
+Scanning dependencies of target bs2_default
+[  0%] Building ASM object pico-sdk/src/rp2_common/boot_stage2/CMakeFiles/bs2_default.dir/compile_time_choice.S.obj
+[  1%] Linking ASM executable bs2_default.elf
+[  1%] Creating directories for 'PioasmBuild'
+[  1%] Creating directories for 'ELF2UF2Build'
+[  1%] Built target bs2_default
+[  1%] Generating bs2_default.bin
+[  2%] Generating bs2_default_padded_checksummed.S
+[  2%] Built target bs2_default_padded_checksummed_asm
+[  2%] No download step for 'ELF2UF2Build'
+[  2%] No download step for 'PioasmBuild'
+[  2%] No update step for 'ELF2UF2Build'
+Scanning dependencies of target core
+[  2%] No update step for 'PioasmBuild'
+[  2%] Building C object core/CMakeFiles/core.dir/port.c.obj
+[  3%] Building C object core/CMakeFiles/core.dir/tag.c.obj
+[  4%] No patch step for 'ELF2UF2Build'
+[  5%] Performing configure step for 'ELF2UF2Build'
+[  6%] No patch step for 'PioasmBuild'
+[  7%] Performing configure step for 'PioasmBuild'
+[  8%] Building C object core/CMakeFiles/core.dir/mixed_radix.c.obj
+loading initial cache file /home/foobar/my-3pi/src-gen/SensorsTiltSolution/build/robot/pioasm/tmp/PioasmBuild-cache-Release.cmake
+-- The C compiler identification is GNU 11.4.0
+[  8%] Building C object core/CMakeFiles/core.dir/reactor_common.c.obj
+[  9%] Building C object core/CMakeFiles/core.dir/lf_token.c.obj
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting CXX compiler ABI info
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Detecting C compiler ABI info - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/foobar/my-3pi/src-gen/SensorsTiltSolution/build/pioasm
+[  9%] Building C object core/CMakeFiles/core.dir/environment.c.obj
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+[  9%] Performing build step for 'PioasmBuild'
+[ 10%] Building CXX object CMakeFiles/pioasm.dir/main.cpp.o
+[ 10%] Building C object core/CMakeFiles/core.dir/reactor.c.obj
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/foobar/my-3pi/src-gen/SensorsTiltSolution/build/elf2uf2
+[ 10%] Building C object core/CMakeFiles/core.dir/utils/vector.c.obj
+[ 10%] Performing build step for 'ELF2UF2Build'
+[ 50%] Building CXX object CMakeFiles/elf2uf2.dir/main.cpp.o
+[ 11%] Building C object core/CMakeFiles/core.dir/utils/pqueue.c.obj
+[ 11%] Building C object core/CMakeFiles/core.dir/utils/util.c.obj
+[ 12%] Building C object core/CMakeFiles/core.dir/utils/semaphore.c.obj
+[ 12%] Building C object core/CMakeFiles/core.dir/utils/hashset/hashset.c.obj
+[ 13%] Building C object core/CMakeFiles/core.dir/utils/hashset/hashset_itr.c.obj
+[ 13%] Building C object core/CMakeFiles/core.dir/modal_models/modes.c.obj
+[ 14%] Building C object core/CMakeFiles/core.dir/platform/lf_unix_clock_support.c.obj
+[ 14%] Building C object core/CMakeFiles/core.dir/platform/lf_unix_syscall_support.c.obj
+[ 15%] Building C object core/CMakeFiles/core.dir/platform/lf_linux_support.c.obj
+[ 15%] Building C object core/CMakeFiles/core.dir/platform/lf_macos_support.c.obj
+[ 16%] Building C object core/CMakeFiles/core.dir/platform/lf_windows_support.c.obj
+[ 16%] Building C object core/CMakeFiles/core.dir/platform/lf_nrf52_support.c.obj
+[ 17%] Building C object core/CMakeFiles/core.dir/platform/lf_zephyr_support.c.obj
+[ 17%] Building C object core/CMakeFiles/core.dir/platform/lf_rp2040_support.c.obj
+[ 18%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdlib/stdlib.c.obj
+[ 18%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_gpio/gpio.c.obj
+[ 19%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_platform/platform.c.obj
+[ 20%] Building CXX object CMakeFiles/pioasm.dir/pio_assembler.cpp.o
+[100%] Linking CXX executable elf2uf2
+[ 19%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_claim/claim.c.obj
+[ 19%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_sync/sync.c.obj
+[ 20%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_irq/irq.c.obj
+[100%] Built target elf2uf2
+[ 20%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_irq/irq_handler_chain.S.obj
+[ 21%] No install step for 'ELF2UF2Build'
+[ 22%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_sync/sem.c.obj
+[ 22%] Completed 'ELF2UF2Build'
+[ 22%] Built target ELF2UF2Build
+[ 22%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_sync/lock_core.c.obj
+[ 23%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_sync/mutex.c.obj
+[ 23%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_sync/critical_section.c.obj
+[ 30%] Building CXX object CMakeFiles/pioasm.dir/pio_disassembler.cpp.o
+[ 24%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_time/time.c.obj
+[ 24%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_time/timeout_helper.c.obj
+[ 25%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_timer/timer.c.obj
+[ 25%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_util/datetime.c.obj
+[ 26%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_util/pheap.c.obj
+[ 26%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/common/pico_util/queue.c.obj
+[ 40%] Building CXX object CMakeFiles/pioasm.dir/gen/lexer.cpp.o
+[ 27%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_uart/uart.c.obj
+[ 27%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_clocks/clocks.c.obj
+[ 28%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_pll/pll.c.obj
+[ 28%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_vreg/vreg.c.obj
+[ 29%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_watchdog/watchdog.c.obj
+[ 29%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_xosc/xosc.c.obj
+[ 30%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/hardware_divider/divider.S.obj
+[ 30%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_runtime/runtime.c.obj
+[ 31%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_printf/printf.c.obj
+[ 31%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_bit_ops/bit_ops_aeabi.S.obj
+[ 50%] Building CXX object CMakeFiles/pioasm.dir/gen/parser.cpp.o
+[ 32%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_bootrom/bootrom.c.obj
+[ 32%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_divider/divider.S.obj
+[ 33%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_aeabi.S.obj
+[ 33%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_init_rom.c.obj
+[ 60%] Building CXX object CMakeFiles/pioasm.dir/c_sdk_output.cpp.o
+[ 34%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_math.c.obj
+[ 70%] Building CXX object CMakeFiles/pioasm.dir/python_output.cpp.o
+[ 34%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_v1_rom_shim.S.obj
+[ 35%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_int64_ops/pico_int64_ops_aeabi.S.obj
+[ 35%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_aeabi.S.obj
+[ 36%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_init_rom.c.obj
+[ 80%] Building CXX object CMakeFiles/pioasm.dir/hex_output.cpp.o
+[ 36%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_math.c.obj
+[ 90%] Building CXX object CMakeFiles/pioasm.dir/ada_output.cpp.o
+[ 36%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_v1_rom_shim.S.obj
+[ 37%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_malloc/pico_malloc.c.obj
+[ 37%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_mem_ops/mem_ops_aeabi.S.obj
+[ 38%] Building ASM object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/crt0.S.obj
+[ 38%] Building CXX object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/new_delete.cpp.obj
+[ 39%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/binary_info.c.obj
+[ 39%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdio/stdio.c.obj
+[ 40%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdio_uart/stdio_uart.c.obj
+[ 40%] Building C object core/CMakeFiles/core.dir/home/foobar/pico-sdk/src/rp2_common/pico_multicore/multicore.c.obj
+[100%] Linking CXX executable pioasm
+[ 41%] Linking CXX static library libcore.a
+[ 41%] Built target core
+[100%] Built target pioasm
+[ 42%] No install step for 'PioasmBuild'
+[ 43%] Completed 'PioasmBuild'
+[ 43%] Built target PioasmBuild
+[ 43%] Generating qtr_sensor_counter.pio.h
+[ 44%] Generating quadrature_encoder.pio.h
+[ 44%] Built target robot_qtr_sensor_counter_pio_h
+[ 44%] Built target robot_quadrature_encoder_pio_h
+Scanning dependencies of target robot
+[ 44%] Building C object robot/CMakeFiles/robot.dir/src/display.c.obj
+[ 45%] Building C object robot/CMakeFiles/robot.dir/src/imu.c.obj
+[ 46%] Building C object robot/CMakeFiles/robot.dir/src/font_8x8.c.obj
+[ 46%] Building C object robot/CMakeFiles/robot.dir/src/font_8x16.c.obj
+[ 46%] Building C object robot/CMakeFiles/robot.dir/src/ir_sensors.c.obj
+[ 47%] Building C object robot/CMakeFiles/robot.dir/src/motors.c.obj
+[ 47%] Building C object robot/CMakeFiles/robot.dir/src/sh1106.c.obj
+[ 48%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdlib/stdlib.c.obj
+[ 48%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_gpio/gpio.c.obj
+[ 49%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_platform/platform.c.obj
+[ 49%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_claim/claim.c.obj
+[ 50%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_sync/sync.c.obj
+[ 51%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_irq/irq_handler_chain.S.obj
+[ 51%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_irq/irq.c.obj
+[ 51%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_sync/sem.c.obj
+[ 52%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_sync/lock_core.c.obj
+[ 52%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_sync/mutex.c.obj
+[ 53%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_time/time.c.obj
+[ 53%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_sync/critical_section.c.obj
+[ 54%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_time/timeout_helper.c.obj
+[ 54%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_timer/timer.c.obj
+[ 55%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_util/datetime.c.obj
+[ 55%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_util/pheap.c.obj
+[ 56%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/common/pico_util/queue.c.obj
+[ 56%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_uart/uart.c.obj
+[ 56%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_clocks/clocks.c.obj
+[ 57%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_pll/pll.c.obj
+[ 58%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_watchdog/watchdog.c.obj
+[ 58%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_vreg/vreg.c.obj
+[ 59%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_divider/divider.S.obj
+[ 59%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_xosc/xosc.c.obj
+[ 59%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_runtime/runtime.c.obj
+[ 60%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_printf/printf.c.obj
+[ 60%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_bit_ops/bit_ops_aeabi.S.obj
+[ 61%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_bootrom/bootrom.c.obj
+[ 61%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_divider/divider.S.obj
+[ 62%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_aeabi.S.obj
+[ 62%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_init_rom.c.obj
+[ 63%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_math.c.obj
+[ 63%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_v1_rom_shim.S.obj
+[ 64%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_int64_ops/pico_int64_ops_aeabi.S.obj
+[ 64%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_aeabi.S.obj
+[ 65%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_init_rom.c.obj
+[ 65%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_math.c.obj
+[ 66%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_v1_rom_shim.S.obj
+[ 66%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_malloc/pico_malloc.c.obj
+[ 67%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_mem_ops/mem_ops_aeabi.S.obj
+[ 67%] Building ASM object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/crt0.S.obj
+[ 68%] Building CXX object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/new_delete.cpp.obj
+[ 68%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/binary_info.c.obj
+[ 69%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdio/stdio.c.obj
+[ 69%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdio_uart/stdio_uart.c.obj
+[ 70%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_adc/adc.c.obj
+[ 70%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_pio/pio.c.obj
+[ 71%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_spi/spi.c.obj
+[ 71%] Building C object robot/CMakeFiles/robot.dir/home/foobar/pico-sdk/src/rp2_common/hardware_i2c/i2c.c.obj
+[ 72%] Linking CXX static library librobot.a
+[ 72%] Built target robot
+Scanning dependencies of target SensorsTiltSolution
+[ 73%] Building C object CMakeFiles/SensorsTiltSolution.dir/lib/schedule.c.obj
+[ 74%] Building C object CMakeFiles/SensorsTiltSolution.dir/_accelerometer.c.obj
+[ 74%] Building C object CMakeFiles/SensorsTiltSolution.dir/_sensorstiltsolution_main.c.obj
+[ 74%] Building C object CMakeFiles/SensorsTiltSolution.dir/_tilt.c.obj
+[ 75%] Building C object CMakeFiles/SensorsTiltSolution.dir/_display.c.obj
+[ 75%] Building C object CMakeFiles/SensorsTiltSolution.dir/SensorsTiltSolution.c.obj
+[ 76%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdlib/stdlib.c.obj
+[ 76%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_gpio/gpio.c.obj
+[ 77%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_platform/platform.c.obj
+[ 77%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_claim/claim.c.obj
+[ 78%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_sync/sync.c.obj
+[ 78%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_irq/irq.c.obj
+[ 79%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_irq/irq_handler_chain.S.obj
+[ 79%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_sync/sem.c.obj
+[ 80%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_sync/lock_core.c.obj
+[ 80%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_sync/mutex.c.obj
+[ 81%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_sync/critical_section.c.obj
+[ 81%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_time/time.c.obj
+[ 81%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_time/timeout_helper.c.obj
+[ 82%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_timer/timer.c.obj
+[ 82%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_util/datetime.c.obj
+[ 83%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_util/pheap.c.obj
+[ 83%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/common/pico_util/queue.c.obj
+[ 84%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_uart/uart.c.obj
+[ 84%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_clocks/clocks.c.obj
+[ 85%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_pll/pll.c.obj
+[ 85%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_vreg/vreg.c.obj
+[ 86%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_watchdog/watchdog.c.obj
+[ 86%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_xosc/xosc.c.obj
+[ 87%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_divider/divider.S.obj
+[ 87%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_runtime/runtime.c.obj
+[ 88%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_printf/printf.c.obj
+[ 88%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_bit_ops/bit_ops_aeabi.S.obj
+[ 88%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_divider/divider.S.obj
+[ 89%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_bootrom/bootrom.c.obj
+[ 90%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_aeabi.S.obj
+[ 90%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_init_rom.c.obj
+[ 91%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_math.c.obj
+[ 91%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_double/double_v1_rom_shim.S.obj
+[ 92%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_int64_ops/pico_int64_ops_aeabi.S.obj
+[ 92%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_aeabi.S.obj
+[ 93%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_init_rom.c.obj
+[ 93%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_math.c.obj
+[ 94%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_float/float_v1_rom_shim.S.obj
+[ 94%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_malloc/pico_malloc.c.obj
+[ 95%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_mem_ops/mem_ops_aeabi.S.obj
+[ 95%] Building ASM object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/crt0.S.obj
+[ 96%] Building CXX object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/new_delete.cpp.obj
+[ 96%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_standard_link/binary_info.c.obj
+[ 97%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdio/stdio.c.obj
+[ 97%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_stdio_uart/stdio_uart.c.obj
+[ 98%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/pico_multicore/multicore.c.obj
+[ 98%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_adc/adc.c.obj
+[ 98%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_pio/pio.c.obj
+[ 99%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_spi/spi.c.obj
+[ 99%] Building C object CMakeFiles/SensorsTiltSolution.dir/home/foobar/pico-sdk/src/rp2_common/hardware_i2c/i2c.c.obj
+[100%] Linking CXX executable SensorsTiltSolution.elf
+[100%] Built target SensorsTiltSolution
+Install the project...
+-- Install configuration: "Release"

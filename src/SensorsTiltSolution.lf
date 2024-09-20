@@ -28,29 +28,28 @@
     a = new Accelerometer()
     tilt = new Tilt()
     d = new Display()
-    timer t(0, 250 msec)
+    timer t(0, 250 msec);
+
+    a.x -> tilt.x 
+    a.y -> tilt.y 
+    a.z -> tilt.z 
   
     reaction(t) -> a.trigger {=
       lf_set(a.trigger, true);
     =}
   
-    reaction(a.x, a.y, a.z) -> d.line0, d.line1, d.line2 {=
+    reaction(tilt.p, tilt.r) -> d.line0, d.line1, d.line2 {=
       /// TODO: define max string size for line
       /// based on font you can have 4 or 8 lines
       static char buf0[17];
       static char buf1[17];
       static char buf2[17];
-  
-      // TODO: finish the calibration here(Left by Hongsijie)
 
-      a.x -> self->tilt.x;
-      a.y -> self->tilt.y;
-      a.z -> self->tilt.z;
-  
-      snprintf(buf0, 17, "x:%2.4f", self->tilt.p->value);
-      snprintf(buf1, 17, "y:%2.4f", self->tilt.r->value);
-      snprintf(buf2, 17, "z:%2.4f", a.z->value);
-  
+
+      snprintf(buf0, 17, "pitch:%2.4f", tilt.p->value);
+      snprintf(buf1, 17, "roll:%2.4f", tilt.r->value);
+      //snprintf(buf2, 17, "z:%2.4f", a.z->value);
+
       lf_set(d.line0, buf0);
       lf_set(d.line1, buf1);
       lf_set(d.line2, buf2);

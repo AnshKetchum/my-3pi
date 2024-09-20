@@ -1,0 +1,27 @@
+target C {
+    platform: {
+      name: "rp2040",
+      board: "pololu_3pi_2040_robot"
+    },
+    single-threaded: true
+  }
+
+preamble {=
+    #include <hardware/gpio.h>
+    #include <stdio.h>
+    #include <pico/stdlib.h>
+  =}
+
+reactor Tilt{
+  input x: float
+  input y: float
+  input z: float
+
+  output p: float
+  output r: float
+
+  reaction(x,y) -> p,r{=
+    lf_set(p,asin(x->value) * 180/3.14159265358979323846);
+    lf_set(r,asin(y->value) * 180/3.14159265358979323846);
+  =}
+}//Tilt should get input from accelerometer and output corresponding degrees.

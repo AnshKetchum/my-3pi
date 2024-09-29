@@ -12,6 +12,7 @@
     single-threaded: true
   }
   
+  import Display from "lib/Display.lf"
   preamble {=
     #include <stdio.h>
     #include <pico/stdlib.h>
@@ -23,6 +24,7 @@
   main reactor {
     timer on_timer(0, 250 ms)
     timer off_timer(0, 350 ms)
+    display = new Display()
   
   
     reaction(startup) {=
@@ -30,17 +32,43 @@
       gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     =}
   
-    reaction(on_timer) {=
+    reaction(on_timer) -> display.line0, display.line1, display.line2, display.line3{=
         uint32_t* ptr = (uint32_t*) (0xd0000014);
-        uint32_t mask = 1ul << 25;
+        uint32_t mask = 1 << PICO_DEFAULT_LED_PIN;
+        static char buf0[128];
+        static char buf1[128];
+        static char buf2[128];
+        static char buf3[128];
+
+        snprintf(buf3, 128, "Pre GPIO Pin: %d", gpio_get(PICO_DEFAULT_LED_PIN));
+        snprintf(buf0, 128, "Pre: %d %d", mask, *ptr);
         *ptr = (*ptr) | mask;
+
+        snprintf(buf1, 128, "Post: %d %d", mask, *ptr);
+        snprintf(buf2, 128, "GPIO Pin: %d", gpio_get(PICO_DEFAULT_LED_PIN));
+
+        lf_set(display.line0, buf3);
+        lf_set(display.line1, buf0);
+        lf_set(display.line2, buf1);
+        lf_set(display.line3, buf2);
+        
     =}
   
-    reaction(off_timer) {=
-        uint32_t* ptr = (uint32_t*) (0xd0000014);
-        uint32_t mask = ~(1ul << 25);
-        *ptr = (*ptr) & mask;
-    =}
+    // reaction(off_timer) -> display.line0, display.line1{=
+    //     uint32_t* ptr = (uint32_t*) (0xd0000014);
+    //     uint32_t mask = 1 << PICO_DEFAULT_LED_PIN;
+    //     static char buf0[128];
+    //     static char buf1[128];
+
+    //     snprintf(buf0, 128, "Pre: %d %d", mask, *ptr);
+    //     *ptr = (*ptr) & mask;
+
+    //     snprintf(buf1, 128, "Post: %d %d", mask, *ptr);
+    //     //snprintf(buf2, 17, "z:%2.4f", a.z->value);
+
+    //     lf_set(display.line0, buf0);
+    //     lf_set(display.line1, buf1);
+    // =}
   
   }
   

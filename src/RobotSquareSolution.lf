@@ -1,0 +1,90 @@
+/**
+ * Template for robot driving lab exercises. This template just periodically switches between a
+ * STOPPED and a DRIVING mode, updating the LCD display on each change of mode.
+ */
+ target C {
+    platform: {
+      name: "rp2040",
+      board: "pololu_3pi_2040_robot"
+    },
+    single-threaded: true
+  }
+  
+  import Display from "lib/Display.lf"
+  import Motors from "lib/Motors.lf"
+  import Encoders from "lib/Encoders.lf"
+  
+  reactor Robot {
+    input drive: bool      // Toggle mode.
+    output notify: string  // Notify of mode change.
+  
+    reaction(startup) -> notify {=
+      lf_set(notify, "INIT");
+    =}
+
+  
+    initial mode DRIVING {
+      reaction(drive) -> reset(DRIVING), notify {=
+        if (drive->value) {
+          lf_set_mode(TURNING);
+          lf_set(notify, "TURNING");
+        }
+      =}
+
+    }
+    mode TURNING {
+        reaction(drive) -> reset(DRIVING), notify {=
+          if (!drive->value) {
+            lf_set_mode(DRIVING);
+            lf_set(notify, "DRIVING");
+          }
+        =}
+      }
+  }  
+  
+  main reactor {
+    timer t(0, 2 sec)
+    timer t0(0, 500 msec)
+    state drive: bool = false
+    robot = new Robot()
+    display = new Display()
+    motors = new Motors()
+    robot.notify -> display.line0
+    encoder = new Encoders()
+  
+    reaction(t) -> robot.drive {=
+      lf_set(robot.drive, self->drive);
+      self.drive = !self.drive;
+    =}
+
+
+    reaction(t0) -> encoder.trigger, motors.left_power, motors.right_power {=
+        lf_set(encoder.trigger, true)
+
+        if (robot.mode == DRIVING) {
+            start = (encoder.left->value + encoder.right->value)/2;
+            lf_set(motors.left_power, 0.75);
+                lf_set(motors.right_power, 0.75);
+            while (((encoder.left->value + encoder.right->value)/2 - start) < 500) {
+                lf_set(motors.left_power, 0.75);
+                lf_set(motors.right_power, 0.75);
+            }
+            lf_set(motors.left_power, 0.0);
+                lf_set(motors.right_power, 0.0);
+        }
+
+        if (robot.mode == TURNING) {
+            start = (encoder.left->value + encoder.right->value)/2;
+            lf_set(motors.left_power, 0.75);
+                lf_set(motors.right_power, 0.75);
+            while (((encoder.left->value + encoder.right->value)/2 - start) < 500) {
+                lf_set(motors.left_power, 0.75);
+                lf_set(motors.right_power, 0.75);
+            }
+            lf_set(motors.left_power, 0.0);
+                lf_set(motors.right_power, 0.0);
+        }
+
+    =}
+  }
+  

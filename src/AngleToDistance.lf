@@ -31,6 +31,8 @@ main reactor {
 
   reaction(encoder.left) -> display.line1 {=
     static char buf[17];
+
+    // s = r * theta ==> r * pi / 180 * degree
     snprintf(buf, 17, "L: %f cm", ((float) encoder.left->value) * 3.175/2 * 0.0174533);
     lf_set(display.line1, buf);
   =}

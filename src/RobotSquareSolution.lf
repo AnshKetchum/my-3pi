@@ -15,76 +15,140 @@
   import Encoders from "lib/Encoders.lf"
   
   reactor Robot {
-    input drive: bool      // Toggle mode.
+    input run: bool      // Toggle mode.
     output notify: string  // Notify of mode change.
-  
-    reaction(startup) -> notify {=
-      lf_set(notify, "INIT");
+    timer encoder_timer (0, 500 msec)
+    state robot_power: float
+
+    // Control the motors
+    motors = new Motors()
+    display = new Display()
+    encoder = new Encoders()
+
+    reaction(startup) {=
+      self->robot_power = 0.75f;
     =}
 
-  
-    initial mode DRIVING {
-      reaction(drive) -> reset(DRIVING), notify {=
-        if (drive->value) {
-          lf_set_mode(TURNING);
-          lf_set(notify, "TURNING");
-        }
+    // Trigger the encoder at a specific interval
+    reaction(encoder_timer) -> encoder.trigger {=
+      // Trigger the encoder to receive initial distance
+      lf_set(encoder.trigger, true);
+
+    =}
+
+    initial mode WAITING {
+      timer wait_timer(0, 250 msec)
+      state counts_to_hold: int
+
+      reaction(reset, startup) -> motors.left_power, motors.right_power {=
+        // Keep our robot at zero
+        lf_set(motors.left_power, 0);
+        lf_set(motors.left_power, 0);
+        
+        self->counts_to_hold = 15;
       =}
 
+      // Fear: reset transition runs right after the end of mode
+      // Solution: move lf_sets into an else
+      reaction(wait_timer) -> notify, display.line0, display.line1, reset(DRIVING) {=
+
+          static char buf0[17];
+          static char buf1[17];
+          // snprintf(buf0, 17, "WAITING:%d %d", self->counts_to_hold, run->value);
+          lf_set(display.line0, "WAITING");
+
+          self->counts_to_hold = self->counts_to_hold - 1;
+
+          // if(run->value == true) {
+
+          // }
+          lf_set_mode(DRIVING);
+          lf_set(display.line1, "FINISHED TRYING");
+      =}
     }
-    mode TURNING {
-        reaction(drive) -> reset(DRIVING), notify {=
-          if (!drive->value) {
-            lf_set_mode(DRIVING);
-            lf_set(notify, "DRIVING");
+
+    mode DRIVING {
+
+      state drive_distance: int 
+      state drive_completed: bool
+      state initial_encoder: int
+      state current_encoder: int
+      timer drive_timer(0, 2 sec)
+      timer retrieval_timer (0, 2sec)
+
+      /* 
+        1. Setup driving distance
+        2. Setup tracking timer
+        3. Run timer for duration 
+        4. Move to the next state
+      */
+
+      // Read the next couple ticks
+    
+
+      reaction(reset) encoder.left, encoder.right -> motors.left_power, motors.right_power, display.line0 {=
+        self->drive_distance = 500;
+        self->drive_completed = false;
+
+        // Reset all motors 
+        lf_set(motors.left_power, 0);
+        lf_set(motors.right_power, 0);
+
+        static char buf0[17];
+        snprintf(buf0, 17, "DRIVING STARTUP");
+        lf_set(display.line0, buf0);
+
+        self->initial_encoder = (encoder.left->value + encoder.right->value)/2;
+      =}
+
+      reaction(drive_timer) encoder.left, encoder.right -> motors.left_power, motors.right_power, reset(TURNING), notify, display.line0, display.line1 {=
+
+          self->current_encoder = (encoder.left->value + encoder.right->value)/2;
+
+          static char buf0[17];
+          static char buf1[17];
+
+          snprintf(buf0, 17, "DRIVING:%d %d", self->current_encoder, self->initial_encoder);
+          lf_set(display.line0, buf0);
+
+          // Based on the current encoder reading, take a specific decision
+          // If the current_encoder vs initial is >500 dist apart, stop
+          if(self->current_encoder - self->initial_encoder >= 500) {
+            lf_set_mode(TURNING);
+            lf_set(notify, "TURNING");
+          } else {
+            // Drive both motors at a certain power - 0.75
+            snprintf(buf1, 17, "Power:%0.1f", self->robot_power);
+            lf_set(display.line1, buf1);
+
+            lf_set(motors.left_power, self->robot_power);
+            lf_set(motors.right_power, self->robot_power);
           }
+      =}
+    }
+
+    mode TURNING {
+        timer turn_timer(0, 2 sec)
+
+        reaction(turn_timer) -> reset(WAITING), notify {=
+            lf_set_mode(WAITING);
+            lf_set(notify, "WAITING");
         =}
       }
+    
   }  
   
   main reactor {
     timer t(0, 2 sec)
     timer t0(0, 500 msec)
     state drive: bool = false
-    robot = new Robot()
     display = new Display()
-    motors = new Motors()
-    robot.notify -> display.line0
-    encoder = new Encoders()
+    // robot.notify -> display.line0
   
-    reaction(t) -> robot.drive {=
-      lf_set(robot.drive, self->drive);
-      self.drive = !self.drive;
-    =}
-
-
-    reaction(t0) -> encoder.trigger, motors.left_power, motors.right_power {=
-        lf_set(encoder.trigger, true)
-
-        if (robot.mode == DRIVING) {
-            start = (encoder.left->value + encoder.right->value)/2;
-            lf_set(motors.left_power, 0.75);
-                lf_set(motors.right_power, 0.75);
-            while (((encoder.left->value + encoder.right->value)/2 - start) < 500) {
-                lf_set(motors.left_power, 0.75);
-                lf_set(motors.right_power, 0.75);
-            }
-            lf_set(motors.left_power, 0.0);
-                lf_set(motors.right_power, 0.0);
-        }
-
-        if (robot.mode == TURNING) {
-            start = (encoder.left->value + encoder.right->value)/2;
-            lf_set(motors.left_power, 0.75);
-                lf_set(motors.right_power, 0.75);
-            while (((encoder.left->value + encoder.right->value)/2 - start) < 500) {
-                lf_set(motors.left_power, 0.75);
-                lf_set(motors.right_power, 0.75);
-            }
-            lf_set(motors.left_power, 0.0);
-                lf_set(motors.right_power, 0.0);
-        }
-
+    robot = new Robot()
+    
+    reaction(startup) -> display.line0 {= 
+      lf_set(display.line0, "STARTUP MAIN");
     =}
   }
   

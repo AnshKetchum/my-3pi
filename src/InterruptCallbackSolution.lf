@@ -23,6 +23,7 @@ main reactor {
     preamble {=
         void gpio_cool_callback(uint gpio, uint32_t events) {
             printf("Button A pressed! GPIO: %u, Events: %u\n", gpio, events);
+            fflush(stdout);  // Ensure the output is flushed to the serial port
         }
     =}
     reaction(startup) {=

@@ -13,28 +13,54 @@
   import Display from "lib/Display.lf"
   import Motors from "lib/Motors.lf"
   import Encoders from "lib/Encoders.lf"
+  import GyroAngle from "lib/IMU.lf"
+
+  preamble {=
+    #include<stdlib.h>
+  =}
   
   reactor Robot {
     input run: bool      // Toggle mode.
     output notify: string  // Notify of mode change.
-    timer encoder_timer (0, 500 msec)
+    
+
+    timer encoder_timer (0, 50 msec)
     state robot_power: float
+    state turn_threshold: int32_t
+    state left: int32_t
+    state right: int32_t
+    state gyro_y: float
 
     // Control the motors
     motors = new Motors()
     display = new Display()
     encoder = new Encoders()
+    gyro = new GyroAngle()
 
     reaction(startup) {=
-      self->robot_power = 0.75f;
+      self->robot_power = 0.1f;
+      self->turn_threshold = 105;
     =}
 
     // Trigger the encoder at a specific interval
-    reaction(encoder_timer) -> encoder.trigger {=
+    reaction(encoder_timer) -> encoder.trigger, gyro.trigger {=
       // Trigger the encoder to receive initial distance
       lf_set(encoder.trigger, true);
-
+      lf_set(gyro.trigger, true);
     =}
+
+    reaction(gyro.y) {=
+      self->gyro_y = gyro.y->value;
+    =}
+
+    reaction(encoder.right) {=
+      self->right = encoder.right->value;
+    =}
+
+    reaction(encoder.left) {=
+      self->left = encoder.left->value;
+    =}
+
 
     initial mode WAITING {
       timer wait_timer(0, 250 msec)
@@ -50,20 +76,20 @@
 
       // Fear: reset transition runs right after the end of mode
       // Solution: move lf_sets into an else
-      reaction(wait_timer) -> notify, display.line0, display.line1, reset(DRIVING) {=
+      reaction(wait_timer) run -> notify, display.line0, display.line1, reset(DRIVING) {=
 
-          static char buf0[17];
-          static char buf1[17];
-          // snprintf(buf0, 17, "WAITING:%d %d", self->counts_to_hold, run->value);
-          lf_set(display.line0, "WAITING");
+          if(run->value == true) {
+            static char buf0[17];
+            static char buf1[17];
+            // snprintf(buf0, 17, "WAITING:%d %d", self->counts_to_hold, run->value);
+            lf_set(display.line0, "WAITING");
 
-          self->counts_to_hold = self->counts_to_hold - 1;
+            self->counts_to_hold = self->counts_to_hold - 1;
 
-          // if(run->value == true) {
+            lf_set_mode(DRIVING);
+            lf_set(display.line1, "FINISHED TRYING");
+          }
 
-          // }
-          lf_set_mode(DRIVING);
-          lf_set(display.line1, "FINISHED TRYING");
       =}
     }
 
@@ -98,12 +124,12 @@
         snprintf(buf0, 17, "DRIVING STARTUP");
         lf_set(display.line0, buf0);
 
-        self->initial_encoder = (encoder.left->value + encoder.right->value)/2;
+        self->initial_encoder = (self->left + self->right)/2;
       =}
 
-      reaction(drive_timer) encoder.left, encoder.right -> motors.left_power, motors.right_power, reset(TURNING), notify, display.line0, display.line1 {=
+      reaction(drive_timer) -> motors.left_power, motors.right_power, reset(TURNING), notify, display.line0, display.line1 {=
 
-          self->current_encoder = (encoder.left->value + encoder.right->value)/2;
+          self->current_encoder = (self->left + self->right)/2;
 
           static char buf0[17];
           static char buf1[17];
@@ -113,7 +139,7 @@
 
           // Based on the current encoder reading, take a specific decision
           // If the current_encoder vs initial is >500 dist apart, stop
-          if(self->current_encoder - self->initial_encoder >= 500) {
+          if(self->current_encoder - self->initial_encoder >= 5) {
             lf_set_mode(TURNING);
             lf_set(notify, "TURNING");
           } else {
@@ -128,11 +154,53 @@
     }
 
     mode TURNING {
-        timer turn_timer(0, 2 sec)
+        timer turn_timer(0, 250 msec)
+        state initial_left: int;
+        state initial_right: int;
+        state initial_gyro: float;
 
-        reaction(turn_timer) -> reset(WAITING), notify {=
-            lf_set_mode(WAITING);
-            lf_set(notify, "WAITING");
+        reaction(reset) -> motors.left_power, motors.right_power {=
+          lf_set(motors.left_power, 0);
+          lf_set(motors.right_power, 0);
+        
+          self->initial_left = self->left;
+          self->initial_right = self->right;
+          self->initial_gyro = self->gyro_y;
+        =}
+
+        reaction(turn_timer) -> display.line0, display.line1, display.line2, motors.left_power, motors.right_power, reset(WAITING) {=
+
+          
+            static char buf0[17];
+            snprintf(buf0, 17, "TURNING");
+
+
+            int left = self->left;
+            int right = self->right;
+            float gyro_val = self->gyro_y;
+
+            static char buf1[17];
+            snprintf(buf1, 17, "Angles: %d %d", left, right);
+
+            static char buf2[17];
+            snprintf(buf2, 17, "Init Angles: %d %d", self->initial_left, self->initial_right);
+
+            static char buf3[17];
+            snprintf(buf3, 17, "Gyro: %.3f", self->gyro_y);
+
+
+            lf_set(display.line0, buf3);
+            lf_set(display.line1, buf1);
+            lf_set(display.line2, buf2);
+
+            //if(abs(gyro_val - self->initial_gyro) >= 0.25) {
+            if(abs(self->left - self->initial_left) >= self->turn_threshold && abs(self->right - self->initial_right) >= self->turn_threshold) {
+
+              lf_set_mode(WAITING);
+            } else {
+              lf_set(motors.left_power, -self->robot_power);
+              lf_set(motors.right_power, self->robot_power);
+            }           
         =}
       }
     
@@ -146,9 +214,10 @@
     // robot.notify -> display.line0
   
     robot = new Robot()
-    
-    reaction(startup) -> display.line0 {= 
+
+    reaction(startup) -> display.line0, robot.run {= 
       lf_set(display.line0, "STARTUP MAIN");
+      lf_set(robot.run, true);
     =}
   }
   

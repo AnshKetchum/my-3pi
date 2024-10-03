@@ -204,7 +204,7 @@
   
             // Based on the current encoder reading, take a specific decision
             // If the current_encoder vs initial is >500 dist apart, stop
-            if(self->reverse_current_encoder - self->reverse_initial_encoder >= self->reverse_drive_distance) {
+            if(abs(self->reverse_current_encoder - self->reverse_initial_encoder) >= self->reverse_drive_distance) {
               lf_set_mode(TURNING);
               lf_set(notify, "TURNING");
             } else {

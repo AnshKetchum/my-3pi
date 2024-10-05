@@ -80,13 +80,14 @@
       // Solution: move lf_sets into an else
       reaction(wait_timer) run -> notify, display.line0, display.line1, reset(DRIVING) {=
 
-          if(run->value == true) {
+          self->counts_to_hold = self->counts_to_hold - 1;
+
+          if(run->value == true && self->counts_to_hold <= 0) {
             static char buf0[17];
             static char buf1[17];
             // snprintf(buf0, 17, "WAITING:%d %d", self->counts_to_hold, run->value);
             lf_set(display.line0, "WAITING");
 
-            self->counts_to_hold = self->counts_to_hold - 1;
 
             lf_set_mode(DRIVING);
             lf_set(display.line1, "FINISHED TRYING");
@@ -204,7 +205,7 @@
   
             // Based on the current encoder reading, take a specific decision
             // If the current_encoder vs initial is >500 dist apart, stop
-            if((float)(abs(self->reverse_current_encoder - self->reverse_initial_encoder)) * 3.175/2 * 0.0174533 >= 50) {
+            if((float)(abs(self->reverse_current_encoder - self->reverse_initial_encoder)) * 3.175/2 * 0.0174533 >= 60) {
               lf_set_mode(TURNING);
               lf_set(notify, "TURNING");
             } else {

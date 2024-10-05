@@ -22,13 +22,12 @@ main reactor {
 
     preamble {=
         // Schedule an event roughly every 200 msec.
-        void gpio_cool_callback(uint gpio, uint32_t events) {
-            char buf[64];
-            snprintf(buf, 64, "Event %d", events);
+        static void* action;
 
-            display_fill_rect(0, 0, DISPLAY_WIDTH, 16, 0);
-            display_text(buf, 0, 0, COLOR_WHITE);
+        void gpio_cool_callback() {
+            lf_schedule(action, 0);
         }
+
       =}
         
     display = new Display()
@@ -36,16 +35,19 @@ main reactor {
 
     reaction(startup) -> a {=
         // Start a thread to schedule physical actions.
+        action = a;
         gpio_init(PICO_DEFAULT_LED_PIN); // Initialize the GPIO pin
         gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_IN); // Set the GPIO as input
 
         // lf_thread_create(&self->thread_id, &external, a);
-        gpio_set_irq_enabled_with_callback(PICO_DEFAULT_LED_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_cool_callback);
+        gpio_set_irq_enabled_with_callback(PICO_DEFAULT_LED_PIN, GPIO_IRQ_EDGE_RISE, true, &gpio_cool_callback);
 
     =}
 
-    reaction(a) {=
+    reaction(a) -> display.line0 {=
+        char buf [64];
         interval_t elapsed_time = lf_time_logical_elapsed();
-        printf("Action triggered at logical time %lld nsec after start.\n", elapsed_time);
+        snprintf(buf, 64, "logical time %lld nsec after start", elapsed_time);
+        lf_set(display.line0, buf);
     =}
 }

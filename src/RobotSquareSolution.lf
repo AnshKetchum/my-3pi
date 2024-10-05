@@ -24,7 +24,7 @@
     output notify: string  // Notify of mode change.
     
 
-    timer encoder_timer (0, 50 msec)
+    timer encoder_timer (0, 5 msec)
     state robot_power: float
     state turn_threshold: int32_t
     state left: int32_t
@@ -38,8 +38,8 @@
     gyro = new GyroAngle()
 
     reaction(startup) {=
-      self->robot_power = 0.1f;
-      self->turn_threshold = 105;
+      self->robot_power = 0.15f;
+      self->turn_threshold = 90;
     =}
 
     // Trigger the encoder at a specific interval
@@ -49,8 +49,8 @@
       lf_set(gyro.trigger, true);
     =}
 
-    reaction(gyro.y) {=
-      self->gyro_y = gyro.y->value;
+    reaction(gyro.z) {=
+      self->gyro_y = gyro.z->value;
     =}
 
     reaction(encoder.right) {=
@@ -63,7 +63,7 @@
 
 
     initial mode WAITING {
-      timer wait_timer(0, 250 msec)
+      timer wait_timer(0, 10 msec)
       state counts_to_hold: int
 
       reaction(reset, startup) -> motors.left_power, motors.right_power {=
@@ -99,7 +99,7 @@
       state drive_completed: bool
       state initial_encoder: int
       state current_encoder: int
-      timer drive_timer(0, 2 sec)
+      timer drive_timer(0, 50 msec)
       timer retrieval_timer (0, 2sec)
 
       /* 
@@ -139,7 +139,7 @@
 
           // Based on the current encoder reading, take a specific decision
           // If the current_encoder vs initial is >500 dist apart, stop
-          if(self->current_encoder - self->initial_encoder >= 5) {
+          if((float)(abs(self->current_encoder - self->initial_encoder)) * 3.175/2 * 0.0174533 >= 50) {
             lf_set_mode(TURNING);
             lf_set(notify, "TURNING");
           } else {
@@ -154,7 +154,7 @@
     }
 
     mode TURNING {
-        timer turn_timer(0, 250 msec)
+        timer turn_timer(0, 20 msec)
         state initial_left: int;
         state initial_right: int;
         state initial_gyro: float;
@@ -193,8 +193,8 @@
             lf_set(display.line1, buf1);
             lf_set(display.line2, buf2);
 
-            //if(abs(gyro_val - self->initial_gyro) >= 0.25) {
-            if(abs(self->left - self->initial_left) >= self->turn_threshold && abs(self->right - self->initial_right) >= self->turn_threshold) {
+            if(abs(gyro_val - self->initial_gyro) >= 90) {
+            // if(abs(self->left - self->initial_left) >= self->turn_threshold && abs(self->right - self->initial_right) >= self->turn_threshold) {
 
               lf_set_mode(WAITING);
             } else {

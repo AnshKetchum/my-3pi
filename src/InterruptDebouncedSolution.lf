@@ -23,15 +23,19 @@ main reactor {
     preamble {=
         // Schedule an event roughly every 200 msec.
         static void* action;
+        int64_t last_time_scheduled = 0;
 
         void gpio_cool_callback() {
-            lf_schedule(action, 0);
+            if(lf_time_physical_elapsed() / 1e6 - last_time_scheduled >= 200) {
+                lf_schedule(action, 0);
+                last_time_scheduled = lf_time_physical_elapsed() / 1e6;
+            } 
         }
 
       =}
         
     display = new Display()
-    timer read_timer(0, 250 ms)
+    timer read_timer(0, 100 ms)
     physical action a: int
     state last_time: int64_t
 
@@ -40,27 +44,32 @@ main reactor {
         action = a;
         gpio_init(PICO_DEFAULT_LED_PIN); // Initialize the GPIO pin
         gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_IN); // Set the GPIO as input
+        gpio_set_irq_enabled_with_callback(PICO_DEFAULT_LED_PIN, GPIO_IRQ_EDGE_RISE, true, &gpio_cool_callback);
 
         // lf_thread_create(&self->thread_id, &external, a);
         self->last_time = 0;
         lf_set(display.line1, "STARTUP-");
     =}
 
-    reaction(read_timer) {=
-        if(gpio_get(PICO_DEFAULT_LED_PIN) == 0) {
-            gpio_set_irq_enabled_with_callback(PICO_DEFAULT_LED_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_cool_callback);
-        }
+    reaction(read_timer) -> display.line2 {=
+        static char buf [17];
+        snprintf(buf, 17, "el: %lld", self->last_time);
+        lf_set(display.line2, buf);
+
+        int64_t cur_time = lf_time_physical_elapsed() / 1e6;
+        //if(gpio_get(PICO_DEFAULT_LED_PIN) == 0 && cur_time - self->last_time >= 250) {
+        //}
     =}
 
-    reaction(a) -> display.line0,display.line2 {=
+    reaction(a) -> display.line0 {=
+
+        interval_t elapsed_time = lf_time_physical_elapsed() / 1e6;        
         static char buf [17];
-        interval_t elapsed_time = lf_time_logical_elapsed() / 1000000;
-        
-        snprintf(buf, 17, "lt:%lld", elapsed_time - self->last_time);
+        snprintf(buf, 17, "lt: %lld", elapsed_time - self->last_time);
+
         
         lf_set(display.line0, buf);
-        lf_set(display.line2, "A-");
-        
         self->last_time = elapsed_time;
+
     =}
 }

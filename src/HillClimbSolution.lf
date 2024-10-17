@@ -1,0 +1,335 @@
+/**
+ * Template for robot driving lab exercises. This template just periodically switches between a
+ * STOPPED and a DRIVING mode, updating the LCD display on each change of mode.
+ */
+ target C {
+    platform: {
+      name: "rp2040",
+      board: "pololu_3pi_2040_robot"
+    },
+    single-threaded: true
+  }
+  
+  import Display from "lib/Display.lf"
+  import Motors from "lib/Motors.lf"
+  import Encoders from "lib/Encoders.lf"
+  import GyroAngle from "lib/IMU.lf"
+  import Bump from "lib/Bump.lf"
+  import Line from "lib/Line.lf"
+
+  preamble {=
+    #include<stdlib.h>
+  =}
+  
+  reactor Robot {
+    input run: bool      // Toggle mode.
+    state current_state: string  // Notify of mode change.
+    
+    timer sensor_timer (0, 10 msec)
+    state robot_power: float
+    state turn_threshold: int32_t
+    state light_threshold: int32_t
+    state forward_distance: int32_t 
+    state backward_distance: int32_t
+    state turn_direction: int32_t 
+    state left: int32_t
+    state right: int32_t
+    state gyro_y: float
+
+    // Control the motors
+    motors = new Motors()
+    display = new Display()
+    encoder = new Encoders()
+    gyro = new GyroAngle()
+    bump = new Bump()
+    line = new Line()
+
+    reaction(startup) -> display.line0, display.line1, display.line2 {=
+      self->robot_power = 0.25f;
+      self->turn_threshold = 60;
+      self->light_threshold = 600;
+      self->forward_distance = 100;
+      self->backward_distance = 1;
+      self->turn_direction = 1;
+      self->left = 0;
+      self->right = 0;
+    =}
+
+
+    // Watch for state changes
+
+    // Trigger the encoder at a specific interval
+    reaction(sensor_timer) -> encoder.trigger, gyro.trigger, line.trigger, display.line3 {=
+      // Trigger the encoder to receive initial distance
+      lf_set(encoder.trigger, true);
+      lf_set(gyro.trigger, true);
+      lf_set(line.trigger, true);
+      lf_set(display.line3, self->current_state);
+    =}
+
+    reaction(gyro.z) {=
+      self->gyro_y = gyro.z->value;
+    =}
+
+    reaction(encoder.right) {=
+      self->right = encoder.right->value;
+    =}
+
+    reaction(encoder.left) {=
+      self->left = encoder.left->value;
+    =}
+
+    initial mode CALIBRATING {
+      timer end_calibration(5 s)
+      timer seconds(0, 1 s)  // Timer used to display seconds.
+      state count: int32_t
+
+      reaction(reset, startup) -> display.line0, display.line1, display.line2 {=
+        lf_set(display.line1, "Roll robot over");
+        lf_set(display.line2, "light and dark.");
+
+        self->count = 0;
+        self->current_state = "CALIBRATING";
+      =}
+    
+      reaction(end_calibration) -> line.calibrate, reset(WAITING) {=
+        lf_set(line.calibrate, false);
+        lf_set_mode(WAITING);
+      =}
+  
+      reaction(seconds) -> display.line0 {=
+        static char buf[17];
+        snprintf(buf, 17, "time:%8d s", self->count++);
+        lf_set(display.line0, buf);
+      =}
+
+      
+    }
+
+    mode WAITING {
+      timer wait_timer(0, 50 msec)
+      state counts_to_hold: int
+
+      reaction(reset, startup) -> motors.left_power, motors.right_power {=
+        // Keep our robot at zero
+        lf_set(motors.left_power, 0);
+        lf_set(motors.left_power, 0);
+        
+        self->counts_to_hold = 15;
+        self->current_state = "WAITING";
+
+      =}
+
+      // Fear: reset transition runs right after the end of mode
+      // Solution: move lf_sets into an else
+      reaction(wait_timer) run -> display.line0, display.line1, reset(DRIVING) {=
+
+          lf_set_mode(DRIVING);
+      
+      =}
+    }
+
+    mode DRIVING {
+
+      state drive_completed: bool
+      state initial_encoder: int
+      state current_encoder: int
+      timer drive_timer(0, 25 msec)
+
+      /* 
+        1. Setup driving distance
+        2. Setup tracking timer
+        3. Run timer for duration 
+        4. Move to the next state
+      */
+
+      // Read the next couple ticks
+    
+
+      reaction(reset, startup) encoder.left, encoder.right -> motors.left_power, motors.right_power, display.line0 {=
+        self->drive_completed = false;
+        self->current_state = "FORWARD";
+
+        // Reset all motors 
+        lf_set(motors.left_power, 0);
+        lf_set(motors.right_power, 0);
+
+
+        self->initial_encoder = (self->left + self->right)/2;
+      =}
+
+      reaction(drive_timer) -> motors.left_power, motors.right_power, reset(TURNING), display.line0, display.line1 {=
+
+          self->current_encoder = (self->left + self->right)/2;
+
+          static char buf0[17];
+          static char buf1[17];
+
+          snprintf(buf0, 17, "DRIVING:%d %d", self->current_encoder - self->initial_encoder, self->forward_distance);
+          lf_set(display.line0, buf0);
+
+          // Based on the current encoder reading, take a specific decision
+          // If the current_encoder vs initial is >500 dist apart, stop
+          if((float)(abs(self->current_encoder - self->initial_encoder)) * 3.175/2 * 0.0174533 >= self->forward_distance) {
+            lf_set_mode(TURNING);
+          } else {
+            // Drive both motors at a certain power - 0.75
+            snprintf(buf1, 17, "Power:%0.1f", self->robot_power);
+            lf_set(display.line1, buf1);
+
+            lf_set(motors.left_power, self->robot_power);
+            lf_set(motors.right_power, self->robot_power);
+          }
+      =}
+
+
+      reaction(line.reflect) -> reset(REVERSE), reset(TURNING), display.line1 {=
+          
+          // Check if we need to turn 180 degrees
+          if((line.reflect->value[1] + line.reflect->value[2] + line.reflect->value[3]) / 3 >= self->light_threshold) {
+            self->turn_threshold = 180;
+            lf_set_mode(REVERSE);
+          }
+          
+          if(line.reflect->value[0] >= self->light_threshold && line.reflect->value[1] >= self->light_threshold) {
+            self->turn_direction = 1; 
+            self->turn_threshold = 60;
+            lf_set_mode(REVERSE);
+          } else if(line.reflect->value[3] >= self->light_threshold && line.reflect->value[4] >= self->light_threshold) {
+            self->turn_direction = -1;
+            self->turn_threshold = 60; 
+            lf_set_mode(REVERSE);
+          }
+
+
+      =}    
+    }
+
+    mode REVERSE {
+
+  
+        /* 
+          1. Setup driving distance
+          2. Setup tracking timer
+          3. Run timer for duration 
+          4. Move to the next state
+        */
+  
+        // Read the next couple ticks
+        state reverse_drive_distance: int 
+        state reverse_initial_encoder: int
+        state reverse_current_encoder: int
+        timer reverse_drive_timer(0, 25 msec)
+  
+        reaction(reset) encoder.left, encoder.right -> motors.left_power, motors.right_power, display.line0 {=
+          self->current_state = "REVERSE";
+
+          // Reset all motors 
+          lf_set(motors.left_power, 0);
+          lf_set(motors.right_power, 0);
+  
+          static char buf0[17];
+          snprintf(buf0, 17, "DRIVING STARTUP");
+          lf_set(display.line0, buf0);
+  
+          self->reverse_initial_encoder = (self->left + self->right)/2;
+        =}
+  
+        reaction(reverse_drive_timer) -> motors.left_power, motors.right_power, reset(TURNING), display.line0, display.line1 {=
+  
+            self->reverse_current_encoder = (self->left + self->right)/2;
+  
+            static char buf0[17];
+            static char buf1[17];
+  
+
+            snprintf(buf0, 17, "REVERSE CUR:%d %d", self->reverse_current_encoder,  self->reverse_initial_encoder);
+            lf_set(display.line0, buf0);
+
+            snprintf(buf1, 17, "REVERSE TOTAL:%d", self->backward_distance);
+            lf_set(display.line1, buf1);
+
+            // Based on the current encoder reading, take a specific decision
+            // If the current_encoder vs initial is >500 dist apart, stop
+            if((float)(abs(self->reverse_current_encoder - self->reverse_initial_encoder)) * 3.175/2 * 0.0174533 >= self->backward_distance) {
+              lf_set_mode(TURNING);
+            } else {
+  
+              lf_set(motors.left_power, -self->robot_power);
+              lf_set(motors.right_power, -self->robot_power);
+            }
+        =}
+
+      }
+
+    mode TURNING {
+        timer turn_timer(0, 20 msec)
+        state initial_left: int;
+        state initial_right: int;
+        state initial_gyro: float;
+
+        reaction(reset) -> motors.left_power, motors.right_power {=
+          lf_set(motors.left_power, 0);
+          lf_set(motors.right_power, 0);
+        
+          self->initial_left = self->left;
+          self->initial_right = self->right;
+          self->initial_gyro = self->gyro_y;
+          self->current_state = "TURNING";
+
+        =}
+
+        reaction(turn_timer) -> display.line0, display.line1, display.line2, motors.left_power, motors.right_power, reset(WAITING) {=
+
+          
+            static char buf0[17];
+            snprintf(buf0, 17, "TURNING %d", self->turn_direction);
+
+
+            int left = self->left;
+            int right = self->right;
+            float gyro_val = self->gyro_y;
+
+            static char buf1[17];
+            snprintf(buf1, 17, "Angles: %d %d", left, right);
+
+            static char buf2[17];
+            snprintf(buf2, 17, "Init Angles: %d %d", self->initial_left, self->initial_right);
+
+            static char buf3[17];
+            snprintf(buf3, 17, "Gyro: %.3f", self->gyro_y);
+
+
+            lf_set(display.line0, buf3);
+            lf_set(display.line1, buf1);
+            lf_set(display.line2, buf2);
+
+            //if(abs(gyro_val - self->initial_gyro) >= 0.25) {
+            if(abs(gyro_val - self->initial_gyro) >= self->turn_threshold) {
+            // if(abs(self->left - self->initial_left) >= self->turn_threshold && abs(self->right - self->initial_right) >= self->turn_threshold) {
+
+              lf_set_mode(WAITING);
+            } else {
+              lf_set(motors.left_power, self->turn_direction * self->robot_power);
+              lf_set(motors.right_power, -self->turn_direction * self->robot_power);
+            }           
+        =}
+      }
+    
+  }  
+  
+  main reactor {
+    timer t(0, 2 sec)
+    timer t0(0, 500 msec)
+    state drive: bool = false
+    display = new Display()
+    // robot.notify -> display.line0
+  
+    robot = new Robot()
+
+    reaction(startup) -> display.line0, robot.run {= 
+      lf_set(display.line0, "STARTUP MAIN");
+      lf_set(robot.run, true);
+    =}
+  }
+  

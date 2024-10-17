@@ -12,10 +12,13 @@
   
   import Display from "lib/Display.lf"
   import Motors from "lib/Motors.lf"
+  import MotorsWithFeedback from "lib/MotorsWithFeedback.lf"
   import Encoders from "lib/Encoders.lf"
+  import Accelerometer from "lib/IMU.lf"
   import GyroAngle from "lib/IMU.lf"
   import Bump from "lib/Bump.lf"
   import Line from "lib/Line.lf"
+  import Tilt from "lib/Tilt.lf"
 
   preamble {=
     #include<stdlib.h>
@@ -31,21 +34,31 @@
     state light_threshold: int32_t
     state forward_distance: int32_t 
     state backward_distance: int32_t
+    state left_speed: int32_t 
+    state right_speed: int32_t 
     state turn_direction: int32_t 
     state left: int32_t
     state right: int32_t
+    state roll: float 
     state gyro_y: float
 
     // Control the motors
-    motors = new Motors()
+    motors_feedback = new MotorsWithFeedback() 
+    accelerometer = new Accelerometer()
     display = new Display()
     encoder = new Encoders()
     gyro = new GyroAngle()
     bump = new Bump()
     line = new Line()
+    tilt = new Tilt()
+
+    accelerometer.x -> tilt.x
+    accelerometer.y -> tilt.y
+    accelerometer.z -> tilt.z
+    
 
     reaction(startup) -> display.line0, display.line1, display.line2 {=
-      self->robot_power = 0.25f;
+      self->robot_power = 0.15f;
       self->turn_threshold = 60;
       self->light_threshold = 600;
       self->forward_distance = 100;
@@ -59,11 +72,12 @@
     // Watch for state changes
 
     // Trigger the encoder at a specific interval
-    reaction(sensor_timer) -> encoder.trigger, gyro.trigger, line.trigger, display.line3 {=
+    reaction(sensor_timer) -> encoder.trigger, gyro.trigger, line.trigger, accelerometer.trigger, display.line3 {=
       // Trigger the encoder to receive initial distance
       lf_set(encoder.trigger, true);
       lf_set(gyro.trigger, true);
       lf_set(line.trigger, true);
+      lf_set(accelerometer.trigger, true);
       lf_set(display.line3, self->current_state);
     =}
 
@@ -71,12 +85,18 @@
       self->gyro_y = gyro.z->value;
     =}
 
-    reaction(encoder.right) {=
-      self->right = encoder.right->value;
+    reaction(tilt.r) {=
+      self->roll = tilt.r->value;
     =}
 
-    reaction(encoder.left) {=
+    reaction(encoder.right) -> motors_feedback.right {=
+      self->right = encoder.right->value;
+      lf_set(motors_feedback.right, encoder.right->value);
+    =}
+
+    reaction(encoder.left) -> motors_feedback.left {=
       self->left = encoder.left->value;
+      lf_set(motors_feedback.left, encoder.left->value);
     =}
 
     initial mode CALIBRATING {
@@ -110,10 +130,10 @@
       timer wait_timer(0, 50 msec)
       state counts_to_hold: int
 
-      reaction(reset, startup) -> motors.left_power, motors.right_power {=
+      reaction(reset, startup) -> motors_feedback.left_speed, motors_feedback.right_speed {=
         // Keep our robot at zero
-        lf_set(motors.left_power, 0);
-        lf_set(motors.left_power, 0);
+        lf_set(motors_feedback.left_speed, 0);
+        lf_set(motors_feedback.right_speed, 0);
         
         self->counts_to_hold = 15;
         self->current_state = "WAITING";
@@ -146,26 +166,33 @@
       // Read the next couple ticks
     
 
-      reaction(reset, startup) encoder.left, encoder.right -> motors.left_power, motors.right_power, display.line0 {=
+      reaction(reset, startup) encoder.left, encoder.right -> motors_feedback.left_speed, motors_feedback.right_speed, display.line0 {=
         self->drive_completed = false;
         self->current_state = "FORWARD";
 
         // Reset all motors 
-        lf_set(motors.left_power, 0);
-        lf_set(motors.right_power, 0);
+        lf_set(motors_feedback.left_speed, 0);
+        lf_set(motors_feedback.right_speed, 0);
 
 
         self->initial_encoder = (self->left + self->right)/2;
       =}
 
-      reaction(drive_timer) -> motors.left_power, motors.right_power, reset(TURNING), display.line0, display.line1 {=
+      reaction(drive_timer) -> motors_feedback.left_speed, motors_feedback.right_speed, reset(TURNING), display.line0, display.line1 {=
 
           self->current_encoder = (self->left + self->right)/2;
 
-          static char buf0[17];
+          static char buf0[32];
           static char buf1[17];
 
-          snprintf(buf0, 17, "DRIVING:%d %d", self->current_encoder - self->initial_encoder, self->forward_distance);
+
+          snprintf(buf1, 17, "DRoll:%0.2f", self->roll);
+          lf_set(display.line1, buf1);
+
+          float left_speed = self->robot_power + 5 * (self->roll < 0 ? abs(self->roll / 5) : 0);
+          float right_speed = self->robot_power + 5 * (self->roll > 0 ? abs(self->roll / 5) : 0);
+
+          snprintf(buf0, 32, "SPD:%.4f %.4f", left_speed, right_speed);
           lf_set(display.line0, buf0);
 
           // Based on the current encoder reading, take a specific decision
@@ -174,11 +201,11 @@
             lf_set_mode(TURNING);
           } else {
             // Drive both motors at a certain power - 0.75
-            snprintf(buf1, 17, "Power:%0.1f", self->robot_power);
-            lf_set(display.line1, buf1);
 
-            lf_set(motors.left_power, self->robot_power);
-            lf_set(motors.right_power, self->robot_power);
+
+
+            lf_set(motors_feedback.left_speed, left_speed);
+            lf_set(motors_feedback.right_speed, right_speed);
           }
       =}
 
@@ -221,12 +248,12 @@
         state reverse_current_encoder: int
         timer reverse_drive_timer(0, 25 msec)
   
-        reaction(reset) encoder.left, encoder.right -> motors.left_power, motors.right_power, display.line0 {=
+        reaction(reset) encoder.left, encoder.right -> motors_feedback.left_speed, motors_feedback.right_speed, display.line0 {=
           self->current_state = "REVERSE";
 
           // Reset all motors 
-          lf_set(motors.left_power, 0);
-          lf_set(motors.right_power, 0);
+          lf_set(motors_feedback.left_speed, 0);
+          lf_set(motors_feedback.right_speed, 0);
   
           static char buf0[17];
           snprintf(buf0, 17, "DRIVING STARTUP");
@@ -235,7 +262,7 @@
           self->reverse_initial_encoder = (self->left + self->right)/2;
         =}
   
-        reaction(reverse_drive_timer) -> motors.left_power, motors.right_power, reset(TURNING), display.line0, display.line1 {=
+        reaction(reverse_drive_timer) -> motors_feedback.left_speed, motors_feedback.right_speed, reset(TURNING), display.line0, display.line1 {=
   
             self->reverse_current_encoder = (self->left + self->right)/2;
   
@@ -255,8 +282,8 @@
               lf_set_mode(TURNING);
             } else {
   
-              lf_set(motors.left_power, -self->robot_power);
-              lf_set(motors.right_power, -self->robot_power);
+              lf_set(motors_feedback.left_speed, -self->robot_power);
+              lf_set(motors_feedback.right_speed, -self->robot_power);
             }
         =}
 
@@ -268,9 +295,9 @@
         state initial_right: int;
         state initial_gyro: float;
 
-        reaction(reset) -> motors.left_power, motors.right_power {=
-          lf_set(motors.left_power, 0);
-          lf_set(motors.right_power, 0);
+        reaction(reset) -> motors_feedback.left_speed, motors_feedback.right_speed {=
+          lf_set(motors_feedback.left_speed, 0);
+          lf_set(motors_feedback.right_speed, 0);
         
           self->initial_left = self->left;
           self->initial_right = self->right;
@@ -279,7 +306,7 @@
 
         =}
 
-        reaction(turn_timer) -> display.line0, display.line1, display.line2, motors.left_power, motors.right_power, reset(WAITING) {=
+        reaction(turn_timer) -> display.line0, display.line1, display.line2, motors_feedback.left_speed, motors_feedback.right_speed, reset(WAITING) {=
 
           
             static char buf0[17];
@@ -310,8 +337,8 @@
 
               lf_set_mode(WAITING);
             } else {
-              lf_set(motors.left_power, self->turn_direction * self->robot_power);
-              lf_set(motors.right_power, -self->turn_direction * self->robot_power);
+              lf_set(motors_feedback.left_speed, self->turn_direction * self->robot_power);
+              lf_set(motors_feedback.right_speed, -self->turn_direction * self->robot_power);
             }           
         =}
       }

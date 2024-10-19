@@ -28,7 +28,7 @@
     input run: bool      // Toggle mode.
     state current_state: string  // Notify of mode change.
     
-    timer sensor_timer (0, 10 msec)
+    timer sensor_timer (0, 25 msec)
     state robot_power: float
     state turn_threshold: int32_t
     state light_threshold: int32_t
@@ -39,8 +39,10 @@
     state turn_direction: int32_t 
     state left: int32_t
     state right: int32_t
+    state pitch: float 
     state roll: float 
     state gyro_y: float
+    state turn_charge: int32_t
 
     // Control the motors
     motors_feedback = new MotorsWithFeedback() 
@@ -58,7 +60,7 @@
     
 
     reaction(startup) -> display.line0, display.line1, display.line2 {=
-      self->robot_power = 0.15f;
+      self->robot_power = 0.2f;
       self->turn_threshold = 60;
       self->light_threshold = 600;
       self->forward_distance = 100;
@@ -66,6 +68,7 @@
       self->turn_direction = 1;
       self->left = 0;
       self->right = 0;
+      self->turn_charge = 1;
     =}
 
 
@@ -87,6 +90,10 @@
 
     reaction(tilt.r) {=
       self->roll = tilt.r->value;
+    =}
+
+    reaction(tilt.p) {=
+      self->pitch = tilt.p->value;
     =}
 
     reaction(encoder.right) -> motors_feedback.right {=
@@ -154,7 +161,11 @@
       state drive_completed: bool
       state initial_encoder: int
       state current_encoder: int
+      state patience: int
+      state initial_pitch: float 
       timer drive_timer(0, 25 msec)
+      state prev_roll: float 
+      state cur_roll: float
 
       /* 
         1. Setup driving distance
@@ -176,34 +187,45 @@
 
 
         self->initial_encoder = (self->left + self->right)/2;
+        self->initial_pitch = self->pitch;
+        self->patience = 0.0;
+        self->prev_roll = self->roll;
       =}
 
-      reaction(drive_timer) -> motors_feedback.left_speed, motors_feedback.right_speed, reset(TURNING), display.line0, display.line1 {=
+      reaction(drive_timer) -> motors_feedback.left_speed, motors_feedback.right_speed, reset(TURNING), display.line1, display.line2 {=
 
           self->current_encoder = (self->left + self->right)/2;
+          self->cur_roll = self->roll;
 
           static char buf0[32];
           static char buf1[17];
 
 
-          snprintf(buf1, 17, "DRoll:%0.2f", self->roll);
+          snprintf(buf1, 17, "DRoll:%0.2f %d", self->roll, self->turn_charge);
           lf_set(display.line1, buf1);
 
-          float left_speed = self->robot_power + 5 * (self->roll < 0 ? abs(self->roll / 5) : 0);
-          float right_speed = self->robot_power + 5 * (self->roll > 0 ? abs(self->roll / 5) : 0);
+          float left_speed = self->robot_power + 0.01 * (-self->roll) * (self->turn_charge);
+          float right_speed = self->robot_power + 0.01 * (self->roll) * (self->turn_charge);
 
-          snprintf(buf0, 32, "SPD:%.4f %.4f", left_speed, right_speed);
-          lf_set(display.line0, buf0);
 
-          // Based on the current encoder reading, take a specific decision
-          // If the current_encoder vs initial is >500 dist apart, stop
-          if((float)(abs(self->current_encoder - self->initial_encoder)) * 3.175/2 * 0.0174533 >= self->forward_distance) {
-            lf_set_mode(TURNING);
+          if(abs(self->roll) >= 2.5 && self->patience < 25) {
+              left_speed = 0.01 * (-self->roll) * (self->turn_charge);
+              right_speed = 0.01 * (self->roll) * (self->turn_charge);
+
+              snprintf(buf0, 32, "CC:%.4f %4f", left_speed, right_speed);
+              lf_set(display.line2, buf0);
+
+              self->patience += 1;
+              lf_set(motors_feedback.left_speed, left_speed);
+              lf_set(motors_feedback.right_speed, right_speed);
+
+    
+
           } else {
-            // Drive both motors at a certain power - 0.75
+            snprintf(buf0, 32, "CC:%.4f %4f", left_speed, right_speed);
+              lf_set(display.line2, buf0);
 
-
-
+            self->patience = 0;
             lf_set(motors_feedback.left_speed, left_speed);
             lf_set(motors_feedback.right_speed, right_speed);
           }
@@ -213,12 +235,14 @@
       reaction(line.reflect) -> reset(REVERSE), reset(TURNING), display.line1 {=
           
           // Check if we need to turn 180 degrees
-          if((line.reflect->value[1] + line.reflect->value[2] + line.reflect->value[3]) / 3 >= self->light_threshold) {
+          if(abs(self->pitch - self->initial_pitch) >= 20 && (float)(abs(self->current_encoder - self->initial_encoder)) * 3.175/2 * 0.0174533 >= 40 && self->turn_charge == 1) {
             self->turn_threshold = 180;
-            lf_set_mode(REVERSE);
+            self->turn_charge = -1;
+
+            lf_set_mode(TURNING);
           }
           
-          if(line.reflect->value[0] >= self->light_threshold && line.reflect->value[1] >= self->light_threshold) {
+          else if(line.reflect->value[0] >= self->light_threshold && line.reflect->value[1] >= self->light_threshold) {
             self->turn_direction = 1; 
             self->turn_threshold = 60;
             lf_set_mode(REVERSE);
@@ -228,7 +252,8 @@
             lf_set_mode(REVERSE);
           }
 
-
+          else {
+          }
       =}    
     }
 
@@ -276,21 +301,24 @@
             snprintf(buf1, 17, "REVERSE TOTAL:%d", self->backward_distance);
             lf_set(display.line1, buf1);
 
+            float left_speed = self->robot_power + 0.01 * (-self->roll);
+            float right_speed = self->robot_power + 0.01 * (self->roll);
+
             // Based on the current encoder reading, take a specific decision
             // If the current_encoder vs initial is >500 dist apart, stop
             if((float)(abs(self->reverse_current_encoder - self->reverse_initial_encoder)) * 3.175/2 * 0.0174533 >= self->backward_distance) {
               lf_set_mode(TURNING);
             } else {
   
-              lf_set(motors_feedback.left_speed, -self->robot_power);
-              lf_set(motors_feedback.right_speed, -self->robot_power);
+              lf_set(motors_feedback.left_speed, -left_speed);
+              lf_set(motors_feedback.right_speed, -right_speed);
             }
         =}
 
       }
 
     mode TURNING {
-        timer turn_timer(0, 20 msec)
+        timer turn_timer(0, 5 msec)
         state initial_left: int;
         state initial_right: int;
         state initial_gyro: float;

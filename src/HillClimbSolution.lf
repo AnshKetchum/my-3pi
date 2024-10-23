@@ -60,7 +60,7 @@
     
 
     reaction(startup) -> display.line0, display.line1, display.line2 {=
-      self->robot_power = 0.2f;
+      self->robot_power = 0.125f;
       self->turn_threshold = 60;
       self->light_threshold = 600;
       self->forward_distance = 100;
@@ -163,7 +163,7 @@
       state current_encoder: int
       state patience: int
       state initial_pitch: float 
-      timer drive_timer(0, 25 msec)
+      timer drive_timer(0, 7 msec)
       state prev_roll: float 
       state cur_roll: float
 
@@ -201,19 +201,27 @@
           static char buf1[17];
 
 
-          snprintf(buf1, 17, "DRoll:%0.2f %d", self->roll, self->turn_charge);
+          snprintf(buf1, 17, "P:%0.2f %0.2f", self->pitch, self->initial_pitch);
           lf_set(display.line1, buf1);
 
           float left_speed = self->robot_power + 0.01 * (-self->roll) * (self->turn_charge);
           float right_speed = self->robot_power + 0.01 * (self->roll) * (self->turn_charge);
 
 
-          if(abs(self->roll) >= 2.5 && self->patience < 25) {
-              left_speed = 0.01 * (-self->roll) * (self->turn_charge);
-              right_speed = 0.01 * (self->roll) * (self->turn_charge);
+
+
+          if(abs(self->roll) >= 4 && self->patience < 25) {
+
+              left_speed = 0.05 * (-self->roll / abs(self->roll)) * (self->turn_charge);
+              right_speed = 0.05 * (self->roll / abs(self->roll)) * (self->turn_charge);
 
               snprintf(buf0, 32, "CC:%.4f %4f", left_speed, right_speed);
               lf_set(display.line2, buf0);
+
+              // if(self->patience <= 0) {
+              //   left_speed = 0;
+              //   right_speed = 0;
+              // }
 
               self->patience += 1;
               lf_set(motors_feedback.left_speed, left_speed);
@@ -235,22 +243,22 @@
       reaction(line.reflect) -> reset(REVERSE), reset(TURNING), display.line1 {=
           
           // Check if we need to turn 180 degrees
-          if(abs(self->pitch - self->initial_pitch) >= 20 && (float)(abs(self->current_encoder - self->initial_encoder)) * 3.175/2 * 0.0174533 >= 40 && self->turn_charge == 1) {
+          if(self->pitch >= 0 && self->pitch <= 2.0 && abs(self->roll) <= 2.0 && (float)(abs(self->current_encoder - self->initial_encoder)) * 3.175/2 * 0.0174533 >= 20 && self->turn_charge == 1) {
             self->turn_threshold = 180;
             self->turn_charge = -1;
 
             lf_set_mode(TURNING);
           }
           
-          else if(line.reflect->value[0] >= self->light_threshold && line.reflect->value[1] >= self->light_threshold) {
-            self->turn_direction = 1; 
-            self->turn_threshold = 60;
-            lf_set_mode(REVERSE);
-          } else if(line.reflect->value[3] >= self->light_threshold && line.reflect->value[4] >= self->light_threshold) {
-            self->turn_direction = -1;
-            self->turn_threshold = 60; 
-            lf_set_mode(REVERSE);
-          }
+          // else if(line.reflect->value[0] >= self->light_threshold && line.reflect->value[1] >= self->light_threshold) {
+          //   self->turn_direction = 1; 
+          //   self->turn_threshold = 60;
+          //   lf_set_mode(REVERSE);
+          // } else if(line.reflect->value[3] >= self->light_threshold && line.reflect->value[4] >= self->light_threshold) {
+          //   self->turn_direction = -1;
+          //   self->turn_threshold = 60; 
+          //   lf_set_mode(REVERSE);
+          // }
 
           else {
           }
@@ -318,14 +326,14 @@
       }
 
     mode TURNING {
-        timer turn_timer(0, 5 msec)
+        timer turn_timer(0, 7 msec)
         state initial_left: int;
         state initial_right: int;
         state initial_gyro: float;
 
         reaction(reset) -> motors_feedback.left_speed, motors_feedback.right_speed {=
-          lf_set(motors_feedback.left_speed, 0);
-          lf_set(motors_feedback.right_speed, 0);
+          // lf_set(motors_feedback.left_speed, 0);
+          // lf_set(motors_feedback.right_speed, 0);
         
           self->initial_left = self->left;
           self->initial_right = self->right;

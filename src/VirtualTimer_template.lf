@@ -146,10 +146,17 @@ main reactor {
         irq_set_enabled(ALARM_IRQ, true);
     }
 
+    void led_turn_on() {
+        gpio_put(PICO_DEFAULT_LED_PIN, false);
+    }
+
+    void led_turn_off() {
+        gpio_put(PICO_DEFAULT_LED_PIN, true);
+    }
+
     void led_toggle() {
         last_led = !last_led;
         gpio_put(PICO_DEFAULT_LED_PIN, last_led);
-
     }
 
     node_t * get_node_by_id(int id) {
@@ -227,18 +234,28 @@ main reactor {
     //Create our timers
 
         // 10 second delay
-        uint64_t time1 = timer_hw->timerawl + 1000000 * 15;
-        int id = virtual_timer_start_repeated(time1, led_toggle); 
-        //sprint(microseconds+ "\n");
 
-        uint64_t time2 = timer_hw->timerawl + 1000000 * 20;
-        int id2 = virtual_timer_start_repeated(time2, led_toggle); 
-        //sprint(microseconds+ "\n");
-        uint64_t time3 = timer_hw->timerawl + 1000000 * 25;
-        int id3 = virtual_timer_start_repeated(time3, led_toggle); 
+        uint64_t time1 = timer_hw->timerawl + 1000000 * 1;
+        int id = virtual_timer_start(time1, led_turn_on); 
 
-        virtual_timer_cancel(id2);
-        virtual_timer_cancel(id3);
+        uint64_t time2 = timer_hw->timerawl + 1000000 * 3;
+        int id2 = virtual_timer_start(time2, led_turn_on); 
+
+        uint64_t time3 = timer_hw->timerawl + 1000000 * 5;
+        int id3 = virtual_timer_start(time3, led_turn_on); 
+
+        uint64_t time4 = timer_hw->timerawl + 1000000 * 2;
+        int id4 = virtual_timer_start(time4, led_turn_off); 
+
+        uint64_t time5 = timer_hw->timerawl + 1000000 * 4;
+        int id5 = virtual_timer_start(time5, led_turn_off); 
+
+        uint64_t time6 = timer_hw->timerawl + 1000000 * 6;
+        int id6 = virtual_timer_start(time6, led_turn_off); 
+
+        //9.2.7 checkoff
+        // virtual_timer_cancel(id2);
+        // virtual_timer_cancel(id3);
         virtual_timer_init();
   =}
   

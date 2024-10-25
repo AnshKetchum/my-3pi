@@ -12,7 +12,7 @@ preamble {=
   #include <hardware/timer.h>
   #include <hardware/irq.h>
   #define ALARM_NUM 0
-  #define ALARM_IRQ TIMER_ALARM_IRQ_NUM(timer_hw, ALARM_NUM)
+  #define ALARM_IRQ TIMER_IRQ_0
 =}
 
 main reactor {
@@ -105,9 +105,9 @@ main reactor {
     void lab5_timer_irq_handler() {
         // Clear the alarm irq
         hw_clear_bits(&timer_hw->intr, 1u << ALARM_NUM);
-
+        printf("Alarm Fired\n");
         // alarm_fired = true;
-        lf_schedule(action, 0);
+        // lf_schedule(action, 0);
     }
 
    
@@ -146,13 +146,15 @@ main reactor {
 
     display = new Display()
     timer print_hw_timer(0, 5000ms)
-    physical action a: int
+    // physical action a: int
     state last_time: int64_t
     
 
-  reaction(startup) ->a {=
+  reaction(startup) {=
       // initialize the LED and the virtual timer    
-      action = a;
+    //   action = a;
+      stdio_init_all();
+      printf("Startup");
 
       gpio_init(PICO_DEFAULT_LED_PIN);
       gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
@@ -164,20 +166,21 @@ main reactor {
   
   reaction(print_hw_timer) -> display.line0 {=
       static char buf[17];
+    //   printf("HI");
       snprintf(buf, 17, "T: %d", timer_hw->timelr);
       lf_set(display.line0, buf);  
   =}
 
-  reaction(a) -> display.line1 {=
-    static char buf [17];
-    interval_t elapsed_time = lf_time_logical_elapsed() / 1000000;
+//   reaction(a) -> display.line1 {=
+//     static char buf [17];
+//     interval_t elapsed_time = lf_time_logical_elapsed() / 1000000;
     
-    snprintf(buf, 17, "TM FR:%lld", elapsed_time - self->last_time);
+//     snprintf(buf, 17, "TM FR:%lld", elapsed_time - self->last_time);
     
-    lf_set(display.line1, buf);
+//     lf_set(display.line1, buf);
     
-    self->last_time = elapsed_time;
-  =}
+//     self->last_time = elapsed_time;
+//   =}
 
   /* TODO: add reaction and timer to create the environment to test */
 

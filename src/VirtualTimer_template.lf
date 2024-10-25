@@ -4,6 +4,8 @@
   keepalive: true
 }
 
+import Display from "lib/Display.lf"
+
 preamble {=
   #include <hardware/gpio.h>
   #include <pico/stdlib.h>
@@ -11,6 +13,8 @@ preamble {=
 =}
 
 main reactor {
+
+    display = new Display()
   preamble {=
 
     typedef void (*virtual_timer_callback_t)(void);
@@ -122,8 +126,10 @@ main reactor {
       virtual_timer_init();
   =}
   
-  reaction(print_hw_timer){=
-      /* TODO for 9.2.2 */
+  reaction(print_hw_timer) -> display.line0 {=
+      static char buf[17];
+      snprintf(buf, 17, "T: %d", timer_hw->timelr);
+      lf_set(display.line0, buf);  
   =}
 
   /* TODO: add reaction and timer to create the environment to test */

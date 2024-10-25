@@ -13,6 +13,7 @@ preamble {=
   #include <hardware/irq.h>
   #define ALARM_NUM 0
   #define ALARM_IRQ TIMER_IRQ_0
+  #define CONSTANT_BUMP 1000000 * 3
 =}
 
 main reactor {
@@ -112,22 +113,32 @@ main reactor {
         //Remove node, reset timer
         node_t* first = list_remove_first(linked_list); 
 
-        if(!first->cancel) {
-            printf("Processing Callback \n");         
-            first->callback();
-        }
 
-        // Clean up the original
-        hw_clear_bits(&timer_hw->intr, 1u << ALARM_NUM); //This is needed + we need to determine what timer the alarm is on
-
-        // Handle Repeats 
-        if(first->repeat_interval != -1) {
-            first->timer_value = first->timer_value + first->repeat_interval;
+        // Adjust the time to handle edge case timing race conditions
+        if(first->timer_value <= timerhw->timerawl) {
+            first->timer_value += CONSTANT_BUMP;             
             list_insert_sorted(first);
-        } else {
-            free(first);
         }
 
+        else {
+            if(!first->cancel) {
+                printf("Processing Callback \n");         
+                first->callback();
+            }
+
+            // Clean up the original
+            hw_clear_bits(&timer_hw->intr, 1u << ALARM_NUM); //This is needed + we need to determine what timer the alarm is on
+
+
+            // Handle Repeats 
+            if(first->repeat_interval != -1) {
+                first->timer_value = first->timer_value + first->repeat_interval;
+                list_insert_sorted(first);
+            } else {
+                free(first);
+            }
+
+        }
         // Setup the next callback
         if(linked_list != NULL) {
             setup_next_callback();

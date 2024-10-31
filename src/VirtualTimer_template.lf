@@ -124,7 +124,7 @@ main reactor {
         hw_clear_bits(&timer_hw->intr, 1u << ALARM_NUM); //This is needed + we need to determine what timer the alarm is on
             
         // else {
-        if(linked_list != NULL)  {
+        while(linked_list != NULL && linked_list->timer_value <= timer_hw->timerawl)  {
             node_t* first = list_remove_first(linked_list); 
 
             printf("%lld\n", first->timer_value);
@@ -163,6 +163,10 @@ main reactor {
         } else {
             timer_hw->alarm[ALARM_NUM] = timer_hw->timerawl + CONSTANT_BUMP;
         }
+    }
+
+    void do_nothing() {
+        
     }
 
     void led_turn_on() {
@@ -265,11 +269,13 @@ main reactor {
 
         // 10 second delay
 
-        uint64_t time1 = timer_hw->timerawl + 1000000 * 20;
-        int id1 = virtual_timer_start(time1, led_turn_on); 
 
-        uint64_t time4 = time1 + 0000001 * 1;
-        int id4 = virtual_timer_start(time4, led_turn_off); 
+        uint64_t time4 = timer_hw->timerawl;
+        int id4 = virtual_timer_start_repeated(time4, 1000000, led_toggle); 
+
+        uint64_t time5 = timer_hw->timerawl;
+        int id5 = virtual_timer_start_repeated(time5, 2000000, do_nothing); 
+
 
 
         //9.2.7 checkoff

@@ -1,0 +1,75 @@
+/**
+ * Respond to button A presses on the
+ * <a href="https://www.pololu.com/docs/0J86">Pololu 3pi+ 2040 robot</a>.
+ * This program prints the GPIO number and event type upon button presses.
+ */
+ target C {
+    platform: {
+        name: "rp2040",
+        board: "pololu_3pi_2040_robot"
+    },
+    threading: false,
+    keepalive: true,
+}
+
+import Display from "lib/Display.lf"
+preamble {=
+    #include <hardware/gpio.h>
+    #include "platform.h" // Defines lf_sleep() and thread functions.
+=}
+
+main reactor {
+
+    preamble {=
+        // Schedule an event roughly every 200 msec.
+        static void* action;
+        int64_t last_time_scheduled = 0;
+
+        void gpio_cool_callback() {
+            if(lf_time_physical_elapsed() / 1e6 - last_time_scheduled >= 200) {
+                lf_schedule(action, 0);
+                last_time_scheduled = lf_time_physical_elapsed() / 1e6;
+            } 
+        }
+
+      =}
+        
+    display = new Display()
+    timer read_timer(0, 100 ms)
+    physical action a: int
+    state last_time: int64_t
+
+    reaction(startup) -> a,display.line1 {=
+        // Start a thread to schedule physical actions.
+        action = a;
+        gpio_init(PICO_DEFAULT_LED_PIN); // Initialize the GPIO pin
+        gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_IN); // Set the GPIO as input
+        gpio_set_irq_enabled_with_callback(PICO_DEFAULT_LED_PIN, GPIO_IRQ_EDGE_RISE, true, &gpio_cool_callback);
+
+        // lf_thread_create(&self->thread_id, &external, a);
+        self->last_time = 0;
+        lf_set(display.line1, "STARTUP-");
+    =}
+
+    reaction(read_timer) -> display.line2 {=
+        static char buf [17];
+        snprintf(buf, 17, "el: %lld", self->last_time);
+        lf_set(display.line2, buf);
+
+        int64_t cur_time = lf_time_physical_elapsed() / 1e6;
+        //if(gpio_get(PICO_DEFAULT_LED_PIN) == 0 && cur_time - self->last_time >= 250) {
+        //}
+    =}
+
+    reaction(a) -> display.line0 {=
+
+        interval_t elapsed_time = lf_time_physical_elapsed() / 1e6;        
+        static char buf [17];
+        snprintf(buf, 17, "lt: %lld", elapsed_time - self->last_time);
+
+        
+        lf_set(display.line0, buf);
+        self->last_time = elapsed_time;
+
+    =}
+}

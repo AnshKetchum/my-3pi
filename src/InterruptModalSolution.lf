@@ -1,0 +1,119 @@
+/**
+ * Respond to button A presses on the
+ * <a href="https://www.pololu.com/docs/0J86">Pololu 3pi+ 2040 robot</a>.
+ * This program prints the GPIO number and event type upon button presses.
+ */
+ target C {
+    platform: {
+        name: "rp2040",
+        board: "pololu_3pi_2040_robot"
+    },
+    threading: false,
+    keepalive: true,
+}
+
+import Display from "lib/Display.lf"
+preamble {=
+    #include <hardware/gpio.h>
+    #include "platform.h" // Defines lf_sleep() and thread functions.
+=}
+
+main reactor {
+    timer counter_timer(0, 250 ms)
+    timer counter_down_timer(0, 500 ms)
+    state counter: int
+    state counter_state: int
+    state last_time: int
+    physical action a
+    display = new Display()
+    preamble {=
+        // Schedule an event roughly every 200 msec.
+        static void* action;
+        int64_t last_time_scheduled = 0;
+
+        void gpio_cool_callback() {
+            if(lf_time_physical_elapsed() / 1e6 - last_time_scheduled >= 200) {
+                lf_schedule(action, 0);
+            } 
+        }
+
+      =}
+        
+
+    reaction(startup) -> a {=
+
+
+        action = a;// Setup GPIO 
+
+        gpio_init(PICO_DEFAULT_LED_PIN); // Initialize the GPIO pin
+        gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_IN); // Set the GPIO as input
+        gpio_set_irq_enabled_with_callback(PICO_DEFAULT_LED_PIN, GPIO_IRQ_EDGE_RISE, true, &gpio_cool_callback);
+
+        self->counter = 0; 
+        self->counter_state = 0;   
+    =}
+
+    initial mode UP {
+        state counter_delta: int
+        
+
+        reaction(reset) {=
+            self->counter_delta = 1;
+        =}
+
+        reaction(counter_timer) -> reset(DOWN), display.line0, display.line1 {=
+            static char buf[17];
+            snprintf(buf, 17, "Count: %d", self->counter);
+            lf_set(display.line1, buf);
+
+
+            lf_set(display.line0, "STATE: UP");
+
+            self->counter = self->counter + self->counter_delta;        
+        =}
+
+        reaction(a) -> reset(UP), reset(DOWN) {=
+            self->counter_state = 1 - self->counter_state;
+            if(self->counter_state == 0) {
+                lf_set_mode(DOWN);
+            }
+            else {
+
+                lf_set_mode(UP);
+            }
+        =}
+
+    }
+    
+    mode DOWN {
+
+        reaction(reset) {=
+            self->counter_delta = -1;
+
+        =}
+        reaction(counter_down_timer) -> reset(UP), display.line0, display.line1 {=
+            static char buf[17];
+            snprintf(buf, 17, "Count: %d", self->counter);
+            lf_set(display.line1, buf);
+
+            lf_set(display.line0, "STATE: DOWN");
+
+            self->counter = self->counter + self->counter_delta;                
+            
+
+        =}
+        reaction(a) -> reset(UP), reset(DOWN) {=
+            self->counter_state = 1 - self->counter_state;
+            if(self->counter_state == 0) {
+                lf_set_mode(DOWN);
+            }
+            else {
+    
+                lf_set_mode(UP);
+            }
+        =}
+    
+    }
+
+
+}
